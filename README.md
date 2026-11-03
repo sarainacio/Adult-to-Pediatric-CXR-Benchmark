@@ -24,17 +24,15 @@ The figures below summarize the domain shift setting and the evaluation workflow
 
 ### Adult-to-Pediatric Domain Shift
 
-![Adult-to-pediatric domain shift](figures/domain_shift_overview.png)
+![Adult-to-pediatric domain shift](images/domain_shift_overview.png)
 
 *Illustration of the source and target domains considered in this benchmark: VinDr-CXR as the adult source domain and PediCXR as the pediatric target domain.*
 
 ### Evaluation Workflow
 
-![Benchmark workflow](figures/benchmark_workflow.png)
+![Benchmark workflow](images/benchmark_workflow.png)
 
 *Overview of the benchmark: models are adapted using adult chest X-rays and subsequently evaluated in both the adult in-domain setting and the pediatric cross-domain setting.*
-
-> Replace the image paths above with the final file locations in your repository (for example, inside a `figures/` folder).
 
 ## Datasets
 

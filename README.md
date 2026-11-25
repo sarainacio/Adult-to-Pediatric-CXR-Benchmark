@@ -35,7 +35,7 @@ cd Adult-to-Pediatric-CXR-Benchmark
 
 **Step 2 — Create and activate a dedicated Conda environment:**
 
-Create a separate environment for the model you want to use, with the Python version specified in its corresponding `environments/*.yml` file. DenseNet-121 and EfficientNet-B0 share the `cnns` environment. For example:
+Create a separate environment for the model you want to use, with the Python version specified in its corresponding `Environments/*.yml` file. DenseNet-121 and EfficientNet-B0 share the `cnns` environment. For example:
 
 ```bash
 conda create -n cnns python=3.10
@@ -48,11 +48,11 @@ Follow the installation instructions in the [Models](#models) section for the se
 
 **Step 4 — Check the experimental dependencies:**
 
-The `environments/*.yml` files contain the package versions used in the experiments and are provided for reproducibility. These files can also be used to recreate the corresponding Conda environments as an alternative to manual installation. GPU/CUDA compatibility may require additional adjustments.
+The `Environments/*.yml` files contain the package versions used in the experiments and are provided for reproducibility. These files can also be used to recreate the corresponding Conda environments as an alternative to manual installation. GPU/CUDA compatibility may require additional adjustments.
 
 ## 💾 2. Dataset Preprocessing
 
-The VinDr-CXR images were converted from DICOM to compressed NumPy (`.npz`) format using the provided [`dicom_conversion_npz.py`](dicom_conversion_npz.py) script, preserving their original resolution. Additional model-specific preprocessing is performed within the training and evaluation scripts.
+The VinDr-CXR images were converted from DICOM to compressed NumPy (`.npz`) format using the provided [`dicom_conversion_npz.py`](Dataset/dicom_conversion_npz.py) script, preserving their original resolution. Additional model-specific preprocessing is performed within the training and evaluation scripts.
 
 ## 🚀 3. Training
 

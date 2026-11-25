@@ -105,4 +105,3 @@ dependencies:
       - urllib3==2.7.0
       - wget==3.2
       - wrapt==2.3.0
-prefix: /home/sarainacio/miniconda3/envs/medclip

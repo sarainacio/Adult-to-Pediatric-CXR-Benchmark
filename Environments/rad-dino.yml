@@ -104,4 +104,3 @@ dependencies:
       - tzdata==2026.3
       - urllib3==2.7.0
       - wadler-lindig==0.1.7
-prefix: /home/sarainacio/miniconda3/envs/rad-dino

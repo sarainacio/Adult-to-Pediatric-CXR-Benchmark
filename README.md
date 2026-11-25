@@ -1,117 +1,115 @@
 # From Adults to Children: Benchmarking Foundation Models for Chest X-Ray Classification under Domain Shift
 
-**Sara Inácio, Hugo Proença, João C. Neves**  
-University of Beira Interior · Instituto de Telecomunicações · NOVA LINCS
+**Accepted at WACV 2027** | [Paper (arXiv)](https://arxiv.org/abs/2610.21809) | [Supplementary Material](Supplementary/supplementary_material.pdf)
 
-This repository accompanies the paper **“From Adults to Children: Benchmarking Foundation Models for Chest X-Ray Classification under Domain Shift.”** It presents a benchmark to study how models trained on **adult chest X-rays** transfer to the **pediatric domain**, where anatomical differences, disease presentation, and population characteristics introduce a substantial domain shift.
+Official code repository for **"From Adults to Children: Benchmarking Foundation Models for Chest X-Ray Classification under Domain Shift"**.
 
-> **Code availability:** The training, evaluation, and data-processing scripts will be added to this repository. Installation and reproduction instructions will be updated once the code is released.
+## 🔍 Overview
 
-## Overview
+This benchmark evaluates **six foundation models and two conventional CNNs** for multi-label chest X-ray classification under an **adult-to-pediatric domain shift**. Models are trained or adapted exclusively on the adult **VinDr-CXR** dataset and evaluated on the held-out adult **VinDr-CXR** test set (*A → A*) and the pediatric **PediCXR** test set (*A → P*). **No pediatric images are used for downstream training or model selection.**
 
-Foundation models have shown strong potential in medical imaging, but robust performance on adult data does not necessarily translate to pediatric populations. In this work, we benchmark **six foundation models** and **two conventional CNN baselines** under a common **five-label multi-label classification task**, using **adult data only** for downstream training and evaluating performance on both adult and pediatric test domains.
+![Overview of the adult-to-pediatric domain-shift evaluation workflow](images/benchmark_workflow.png)
 
-The benchmark is designed to address the following questions:
+*Overview of the benchmark workflow.*
 
-1. Which models transfer most effectively from adult to pediatric chest X-rays?
-2. How do pretraining domain and supervision paradigm relate to cross-domain performance?
-3. How does adaptation depth affect pediatric performance and robustness?
-4. Does in-domain adult performance reliably reflect cross-domain robustness?
+We compare three adaptation strategies: **linear probing (LP)**, which updates only the classification head; **partial fine-tuning (PFT)**, which updates selected final encoder layers and the classification head; and **full fine-tuning (FFT)**, which updates the entire visual encoder and classification head. Each configuration is evaluated over **three random seeds**.
 
-## Benchmark at a Glance
+## 🧠 Models
 
-The figures below summarize the domain shift setting and the evaluation workflow used in the paper.
+| | DenseNet-121 | EfficientNet-B0 | CLIP | DINOv2 | BiomedCLIP | MedCLIP | BioViL-T | RAD-DINO |
+|---|---|---|---|---|---|---|---|---|
+| **Implementation** | [Link](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.densenet121.html) | [Link](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_b0.html) | [Link](https://github.com/openai/CLIP) | [Link](https://github.com/facebookresearch/dinov2) | [Link](https://huggingface.co/microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224) | [Link](https://github.com/RyanWangZf/MedCLIP) | [Link](https://github.com/microsoft/hi-ml/tree/main/hi-ml-multimodal) | [Link](https://huggingface.co/microsoft/rad-dino) |
 
-### Adult-to-Pediatric Domain Shift
+For multimodal foundation models, only the **visual encoder** is used for downstream classification.
 
-![Adult-to-pediatric domain shift](images/domain_shift_overview.png)
+## ⚙️ 1. Installation
 
-*Illustration of the source and target domains considered in this benchmark: VinDr-CXR as the adult source domain and PediCXR as the pediatric target domain.*
+The experiments were implemented in **PyTorch**, using separate **Conda environments** to accommodate model-specific dependencies. DenseNet-121 and EfficientNet-B0 share the `cnns` environment.
 
-### Evaluation Workflow
+**Step 1 — Clone the repository:**
 
-![Benchmark workflow](images/benchmark_workflow.png)
+```bash
+git clone https://github.com/sarainacio/Adult-to-Pediatric-CXR-Benchmark.git
+cd Adult-to-Pediatric-CXR-Benchmark
+```
 
-*Overview of the benchmark: models are adapted using adult chest X-rays and subsequently evaluated in both the adult in-domain setting and the pediatric cross-domain setting.*
+**Step 2 — Create and activate a dedicated Conda environment:**
 
-## Datasets
+Create a separate environment for the model you want to use, with the Python version specified in its corresponding `environments/*.yml` file. DenseNet-121 and EfficientNet-B0 share the `cnns` environment. For example:
 
-We use two chest X-ray datasets:
+```bash
+conda create -n cnns python=3.10
+conda activate cnns
+```
 
-- **VinDr-CXR**: used as the **adult source domain**.
-- **PediCXR**: used as the **pediatric target domain**.
+**Step 3 — Install the original model implementation:**
 
-To better separate the two populations, the benchmark includes an additional **age-based screening step** based on available DICOM metadata. Patients aged **0–18 years** are considered pediatric, and patients **older than 18 years** are considered adult. Pediatric examinations identified in the original VinDr-CXR test partition are reassigned to the pediatric evaluation pool, while adult examinations identified in PediCXR are excluded from the pediatric domain.
+Follow the installation instructions in the [Models](#models) section for the selected upstream implementation, including any required packages or pretrained model downloads. Perform these steps inside the activated Conda environment.
 
-The two datasets are harmonized into a shared **five-label target space**:
+**Step 4 — Check the experimental dependencies:**
 
-- **No Finding**
-- **Other Diseases**
-- **Pneumonia**
-- **Tuberculosis**
-- **Lung Tumor**
+The `environments/*.yml` files contain the package versions used in the experiments and are provided for reproducibility. These files can also be used to recreate the corresponding Conda environments as an alternative to manual installation. GPU/CUDA compatibility may require additional adjustments.
 
-In PediCXR, *Pneumonia*, *Broncho-pneumonia*, and *Pleuro-pneumonia* are merged into a single **Pneumonia** label. Labels without a counterpart across datasets are excluded from the shared target space.
+## 💾 2. Dataset Preprocessing
 
-For complete details on age-based screening, dataset composition, and label harmonization, please refer to the paper and supplementary material.
+The VinDr-CXR images were converted from DICOM to compressed NumPy (`.npz`) format using the provided [`dicom_conversion_npz.py`](dicom_conversion_npz.py) script, preserving their original resolution. Additional model-specific preprocessing is performed within the training and evaluation scripts.
 
-> **Dataset access:** This repository does not include the original medical images. Users must obtain the datasets from their official sources and comply with the respective licenses and usage conditions.
+## 🚀 3. Training
 
-## Evaluated Models
+Each model directory contains separate training scripts for the three adaptation strategies:
 
-The benchmark includes both conventional CNN baselines and foundation models spanning different pretraining domains and supervision strategies.
+- **LP:** linear probing
+- **PFT:** partial fine-tuning
+- **FFT:** full fine-tuning
 
-| Category | Models |
-|---|---|
-| CNN baselines | DenseNet-121, EfficientNet-B0 |
-| General-purpose foundation models | CLIP, DINOv2 |
-| Biomedical foundation models | BiomedCLIP |
-| CXR-specific / radiology-oriented foundation models | MedCLIP, BioViL-T, RAD-DINO |
+All models are trained using the adult VinDr-CXR training data. The same adult training/validation split is used across models and strategies, and the best checkpoint is selected using the **adult validation Macro-AUROC**. Each experiment is repeated with **three random seeds**.
 
-For all models, we use the **visual encoder** together with the same downstream classification head. For multimodal models, the **text encoder is not used** during downstream training or inference.
+**Important:** Paths are defined separately in each Python file. **Before running any training script, manually update its dataset paths, pretrained-weight paths (if applicable), checkpoint paths, and output directories** to match your local filesystem. Changes made in one script do not automatically update the others.
 
-## Adaptation Strategies
+Navigate to the relevant model directory and run the Python script corresponding to the desired adaptation strategy (LP, PFT, or FFT). Script names may differ between models; use the filenames provided in each directory.
 
-We compare three levels of downstream adaptation:
+For full details of the training protocol and hyperparameters, refer to the [paper](https://arxiv.org/abs/2610.21809).
 
-- **Linear Probing (LP):** only the classification head is trained; the encoder remains frozen.
-- **Partial Fine-Tuning (PFT):** the classification head and the final encoder block/stage are updated.
-- **Full Fine-Tuning (FFT):** the full encoder and classification head are jointly optimized.
+## 📊 4. Evaluation
 
-These three settings allow us to assess how much adaptation is needed for models to transfer from adult to pediatric chest X-rays.
+Each model directory includes evaluation scripts for both **individual checkpoints** and **the three-seed evaluation**.
 
-## Evaluation
+Models are evaluated without additional training on:
 
-All models are trained or adapted **exclusively on adult data** and evaluated in two settings:
+- **VinDr-CXR test set (A → A):** in-domain evaluation on adult images.
+- **PediCXR test set (A → P):** cross-domain evaluation on pediatric images.
 
-- **In-domain evaluation (A → A):** testing on adult chest X-rays.
-- **Cross-domain evaluation (A → P):** testing on pediatric chest X-rays.
+The evaluation reports **Macro-AUROC**, **mean Average Precision (mAP)**, and **Macro-F1**, with the results summarized as **mean ± standard deviation over three seeds**. The domain-shift gap is defined as:
 
-To quantify the impact of the adult-to-pediatric shift, we also report the **AUROC gap** between adult and pediatric evaluation.
+```text
+ΔAUROC = Macro-AUROC (A → A) − Macro-AUROC (A → P)
+```
 
-## Main Findings
+**As with training, manually adjust the dataset and checkpoint paths in each evaluation Python file before execution**, including the individual-checkpoint and three-seed evaluation scripts. Paths are script-specific; updating one file does not update the others. Run the evaluation script available in the corresponding model directory.
 
-The benchmark reveals several consistent trends:
+## 💾 5. Model Checkpoints
 
-- All evaluated models suffer a **clear performance drop** when transferred from adult to pediatric data.
-- **RAD-DINO** shows the most stable behavior across adaptation strategies and retains strong pediatric performance.
-- The effect of adaptation depth is **model-dependent**: more fine-tuning can improve, preserve, or even reduce cross-domain performance depending on the pretrained representation.
-- Strong adult in-domain performance does **not necessarily imply** stronger pediatric transfer.
+The **trained model checkpoints** corresponding to the experiments are stored on OneDrive due to their file sizes and are **available upon request**. They are not included in this GitHub repository.
 
-Overall, the results show that evaluating models only on adult data gives an incomplete view of their robustness across patient populations.
+For access instructions, see the [Model Checkpoints README](Checkpoints/README.md), or contact **[sara.inacio@ubi.pt](mailto:sara.inacio@ubi.pt)** directly.
 
-## Paper and Supplementary Material
+## 📎 6. Supplementary Material
 
-- **Paper:** *From Adults to Children: Benchmarking Foundation Models for Chest X-Ray Classification under Domain Shift*
-- **Supplementary Material:** includes additional details on age-based population screening, dataset construction, splitting, and label composition.
+The [supplementary material](Supplementary/supplementary_material.pdf) accompanies the paper and provides additional details on dataset screening, label distributions, and experimental results.
 
-Links to the final publication and supplementary files will be added when available.
+## 📖 7. Citation
 
-## Citation
+If you use this repository or benchmark in your work, please cite our paper:
 
-If you find this benchmark useful in your research, please cite the accompanying paper. The final BibTeX entry will be added once the publication details are available.
+```bibtex
+@misc{inacio2026adultpediatric,
+  title={From Adults to Children: Benchmarking Foundation Models for Chest X-Ray Classification under Domain Shift},
+  author={Inacio, Sara and Proenca, Hugo and Neves, Joao C.},
+  year={2026},
+  eprint={2610.21809},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}
+}
+```
 
-## Authors
-
-**Sara Inácio**, **Hugo Proença**, and **João C. Neves**  
-University of Beira Interior · Instituto de Telecomunicações · NOVA LINCS
+*The citation will be updated with the official WACV 2027 proceedings entry when available.*

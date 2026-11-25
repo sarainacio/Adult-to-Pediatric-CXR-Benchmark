@@ -1,0 +1,37 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# Model checkpoints and weights
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Medical images and NumPy arrays
+*.dcm
+*.dicom
+*.npz
+*.npy
+
+# Training outputs and logs
+outputs/
+runs/
+logs/
+wandb/
+tensorboard/
+
+# Temporary files
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
